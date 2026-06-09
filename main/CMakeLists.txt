@@ -1,0 +1,19 @@
+idf_component_register(
+    SRCS
+        "hello_world_main.c"
+        "board_i2c.c"
+        "i2c_scan.c"
+        "mcp4728_addr.c"
+        "si5351.c"
+        "bringup.c"
+    INCLUDE_DIRS
+        "."
+    PRIV_REQUIRES
+        spi_flash
+        esp_driver_i2c
+        esp_driver_gpio
+        esp_rom
+        esp_system
+        freertos
+        log
+)
