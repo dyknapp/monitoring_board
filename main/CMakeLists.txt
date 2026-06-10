@@ -6,6 +6,7 @@ idf_component_register(
         "mcp4728_addr.c"
         "si5351.c"
         "bringup.c"
+        "freq_counter.c"
     INCLUDE_DIRS
         "."
     PRIV_REQUIRES
@@ -14,6 +15,9 @@ idf_component_register(
         esp_driver_gpio
         esp_rom
         esp_system
+        esp_timer
+        esp_pm
+        esp_driver_pcnt
         freertos
         log
 )

@@ -5,11 +5,14 @@
 #include "i2c_scan.h"
 #include "mcp4728_addr.h"
 #include "si5351.h"
+#include "freq_counter.h"
 
 #include "esp_check.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "soc/clk_tree_defs.h"  // Defines SOC_RTC_SLOW_CLK_SRC_OSC_SLOW
+#include "hal/clk_tree_ll.h"    // Provides clk_ll_rtc_slow_set_src
 
 static const char *TAG = "bringup";
 
@@ -111,6 +114,15 @@ esp_err_t bringup_init(void)
     ESP_RETURN_ON_ERROR(si5351_init(s_i2c_bus),
                         TAG,
                         "Si5351 initialization failed");
+    xTaskCreate(frequency_measure_task, "freq_meas_task", 4096, NULL, 5, NULL);
+
+    // Allow a short period for the newly generated 32.768 kHz clock to stabilize
+    vTaskDelay(pdMS_TO_TICKS(50));
+
+    // Switch the RTC slow clock source to the external oscillator input (OSC_SLOW)
+    ESP_LOGI(TAG, "Migrating RTC clock tree source to external Si5351 signal...");
+
+    LP_AON_CLKRST.lp_clk_conf.slow_clk_sel = 3;
 
     ESP_LOGI(TAG, "Board bring-up complete");
 
