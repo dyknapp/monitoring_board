@@ -7,6 +7,8 @@ idf_component_register(
         "si5351.c"
         "bringup.c"
         "freq_counter.c"
+        "eth_bringup.c"
+        "rmii_loopback.c"
     INCLUDE_DIRS
         "."
     PRIV_REQUIRES
@@ -17,7 +19,9 @@ idf_component_register(
         esp_system
         esp_timer
         esp_pm
+        esp_event
         esp_driver_pcnt
+        esp_eth
         freertos
         log
 )

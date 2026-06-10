@@ -114,6 +114,33 @@ esp_err_t si5351_init(i2c_master_bus_handle_t bus)
 
     ESP_LOGI(TAG, "CLK2 configured for 32.768 kHz");
 
+    // --- Configure Multisynth 3 for 50.000 MHz (800 MHz / 16) ---
+    // MS3_P1 = 128*16 - 512 = 1536 (0x0600)
+    // MS3_P2 = 0, MS3_P3 = 1
+    si5351_write_reg(66, 0x00); // MS3_P3[15:8]
+    si5351_write_reg(67, 0x01); // MS3_P3[7:0]
+    si5351_write_reg(68, 0x00); // R3_DIV = 1 (000b), MS3_DIVBY4 = 0, MS3_P1[17:16] = 00b
+    si5351_write_reg(69, 0x06); // MS3_P1[15:8]
+    si5351_write_reg(70, 0x00); // MS3_P1[7:0]
+    si5351_write_reg(71, 0x00); // MS3_P3[19:16] | MS3_P2[19:16]
+    si5351_write_reg(72, 0x00); // MS3_P2[15:8]
+    si5351_write_reg(73, 0x00); // MS3_P2[7:0]
+
+    // Configure CLK3 output control (Register 19)
+    // Power up (0), Integer mode true (1), Source PLLA (0), No invert (0), 
+    // Source MS3 (11), 8mA drive strength (11) -> 0x4F
+    si5351_write_reg(19, 0x4F);
+
+    // Reset PLLA to apply all new divider settings seamlessly (Register 177)
+    // Bit 5 is PLLA_RST
+    si5351_write_reg(177, 0x20);
+
+    // Enable both CLK2 (for RTC) and CLK3 (for RMII Ethernet)
+    // Bit 3 = 0 (CLK3 enabled), Bit 2 = 0 (CLK2 enabled), all other bits = 1 (disabled)
+    si5351_write_reg(3, 0xF3);
+
+    ESP_LOGI(TAG, "CLK2 (32.768 kHz) and CLK3 (50.00 MHz) successfully configured on PLLA");
+
     // Wait for the Si5351 to initialize itself
     vTaskDelay(pdMS_TO_TICKS(10));
     ESP_RETURN_ON_ERROR(si5451_check_status(bus, &dev_cfg), TAG, "Failed to check Si5351 status");

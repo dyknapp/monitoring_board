@@ -6,6 +6,8 @@
 #include "mcp4728_addr.h"
 #include "si5351.h"
 #include "freq_counter.h"
+#include "eth_bringup.h"
+#include "rmii_loopback.h"
 
 #include "esp_check.h"
 #include "esp_log.h"
@@ -123,6 +125,22 @@ esp_err_t bringup_init(void)
     ESP_LOGI(TAG, "Migrating RTC clock tree source to external Si5351 signal...");
 
     LP_AON_CLKRST.lp_clk_conf.slow_clk_sel = 3;
+
+    // Checking connection to the IP101 PHY
+    test_ip101_connection();
+
+    // Run RMII PHY loopback test if the Ethernet driver was installed successfully.
+    {
+        esp_eth_handle_t eth = eth_bringup_get_handle();
+        if (eth) {
+            esp_err_t loop_ret = test_rmii_phy_loopback(eth);
+            if (loop_ret != ESP_OK) {
+                ESP_LOGE(TAG, "RMII loopback test failed: %s", esp_err_to_name(loop_ret));
+            }
+        } else {
+            ESP_LOGW(TAG, "Ethernet handle not available; skipping RMII loopback test");
+        }
+    }
 
     ESP_LOGI(TAG, "Board bring-up complete");
 

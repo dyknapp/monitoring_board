@@ -8,6 +8,8 @@
 #include "esp_flash.h"
 #include "esp_system.h"
 #include "esp_err.h"
+#include "esp_event.h"
+#include "esp_log.h"
 
 
 #include "bringup.h"
@@ -42,14 +44,8 @@ void app_main(void)
 {
     print_status();
 
-    ESP_ERROR_CHECK(bringup_init());
-    
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    // for (int i = 10; i >= 0; i--) {
-    //     printf("Restarting in %d seconds...\n", i);
-    //     vTaskDelay(1000 / portTICK_PERIOD_MS);
-    // }
-    // printf("Restarting now.\n");
-    // fflush(stdout);
-    // esp_restart();
+    ESP_ERROR_CHECK(bringup_init());
+    ESP_LOGI("app_main", "Bring-up finished; leaving board running.");
 }

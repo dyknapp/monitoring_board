@@ -48,24 +48,24 @@ void frequency_measure_task(void *arg)
 
     ESP_LOGI(FREQ_TAG, "PCNT started. Entering measurement loop.");
 
-    while (1) {
-        // Clear the counter and start the timer
-        ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
-        int64_t t_start = esp_timer_get_time(); // Time in microseconds
-        
-        // Wait roughly 500 ms
-        vTaskDelay(pdMS_TO_TICKS(MEASURE_WINDOW_MS));
-        
-        // Stop the timer and grab the pulse count
-        int64_t t_end = esp_timer_get_time();
-        int pulse_count = 0;
-        ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &pulse_count));
+    // Clear the counter and start the timer
+    ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
+    int64_t t_start = esp_timer_get_time(); // Time in microseconds
+    
+    // Wait roughly 500 ms
+    vTaskDelay(pdMS_TO_TICKS(MEASURE_WINDOW_MS));
+    
+    // Stop the timer and grab the pulse count
+    int64_t t_end = esp_timer_get_time();
+    int pulse_count = 0;
+    ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &pulse_count));
 
-        // Calculate frequency: Freq = Pulses / Time(s)
-        float exact_time_s = (float)(t_end - t_start) / 1000000.0f;
-        float freq = (float)pulse_count / exact_time_s;
+    // Calculate frequency: Freq = Pulses / Time(s)
+    float exact_time_s = (float)(t_end - t_start) / 1000000.0f;
+    float freq = (float)pulse_count / exact_time_s;
 
-        ESP_LOGI(FREQ_TAG, "Counted %d pulses in %.4f seconds -> Measured Frequency: %.2f Hz", 
-                 pulse_count, exact_time_s, freq);
-    }
+    ESP_LOGI(FREQ_TAG, "Counted %d pulses in %.4f seconds -> Measured Frequency: %.2f Hz", 
+                pulse_count, exact_time_s, freq);
+
+    vTaskDelete(NULL);
 }
